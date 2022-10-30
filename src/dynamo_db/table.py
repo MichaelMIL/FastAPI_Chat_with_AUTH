@@ -1,23 +1,33 @@
-from typing import List
+from typing import List, Union
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
-import boto3
+import time
+
+
+def expression_and_values_builder(dict:dict, command:str) ->Union[str,dict]:
+    expression = command
+    values = {}
+    for key, value in dict.items():
+        expression += f' {key}=:{key},'
+        values[f':{key}'] = value
+    return expression[:-1] , values
 
 class DynamoTable:
-    def __init__(self,table_name ,dyn_resource, table_schema:dict=None) -> None:
+    def __init__(self,table_name:str ,dyn_resource, dyn_client, table_schema:dict=None) -> None:
         """
         :param dyn_resource: A Boto3 DynamoDB resource.
         """
         self.dyn_resource = dyn_resource
+        self.dyn_client = dyn_client
         self.table_name = table_name
         self.table = None
         self._sec_indexs = []
         if not self.exists():
             if table_schema:
-                print(f'Table {table_name} is missing - creating table')
+                print(f'Table {table_name.upper()} is missing - creating table')
                 self.create_table_and_sec_indexs(table_schema)
             else:
-                print(f'Table {table_name} is missing - create table')
+                print(f'Table {table_name.upper()} is missing - create table')
 
     @property
     def attributes(self)->List:
@@ -27,10 +37,25 @@ class DynamoTable:
     def sec_indexs(self) ->List:
         return self._sec_indexs
 
+    @property
+    def describe_table(self)->dict:
+        return self.dyn_client.describe_table(TableName=self.table_name)
+
+    @property
+    def global_secondary_indexes(self)-> List[dict]:
+        return self.describe_table['Table']['GlobalSecondaryIndexes']
+
+    @property
+    def global_secondary_indexes_list(self)-> List[str]:
+        return [name['IndexName'] for name in self.describe_table['Table']['GlobalSecondaryIndexes']]
+
     def create_table_and_sec_indexs(self, table_schema:dict):
         self.create(key_schema = table_schema['base']['key_schema'],attribute_definitions=table_schema['base']['attribute_definitions'])
+        time.sleep(1)
         for sec_index in table_schema['secondery_keys']:
             self.add_sec_index(index_name= sec_index['name'], key_schema= sec_index['key_schema'],attribute_definitions=sec_index['attribute_definitions'])
+            time.sleep(1)
+
 
 
     def exists(self):
@@ -70,6 +95,7 @@ class DynamoTable:
                 KeySchema=key_schema,
                 AttributeDefinitions=attribute_definitions,
                 ProvisionedThroughput={'ReadCapacityUnits': 10, 'WriteCapacityUnits': 10})
+            print(f'Waiting for {self.table_name} to be created')
             self.table.wait_until_exists()
         except ClientError as err:
             print(
@@ -120,7 +146,7 @@ class DynamoTable:
             self.table.put_item(Item=item)
         except ClientError as err:
             print(
-                "Couldn't add item %s to table %s. Here's why: %s: %s",
+                "Couldn't add item %s to table %s. Here's why: %s: %s",item,
                  self.table.name,
                 err.response['Error']['Code'], err.response['Error']['Message'])
             raise
@@ -134,7 +160,7 @@ class DynamoTable:
             response = self.table.get_item(Key=key)
         except ClientError as err:
             print(
-                "Couldn't get item %s from table %s. Here's why: %s: %s",
+                "Couldn't get item %s from table %s. Here's why: %s: %s", key,
                 self.table.name,
                 err.response['Error']['Code'], err.response['Error']['Message'])
             raise
@@ -197,8 +223,13 @@ class DynamoTable:
 
         return items
 
+    def update_item_by_dict(self,key:dict, dict:dict):
+        update_expression,update_values = expression_and_values_builder(dict, 'set')
+        print(update_expression)
+        print(update_values)
+        return self.update_item(key,update_expression,update_values)
 
-    def update_item(self,key:dict ,update_expression:str="set info.rating=:r, info.plot=:p", update_values:str='":r": {VALUE}, ":p": {VALUE}'):
+    def update_item(self,key:dict ,update_expression:str="set info.rating=:r, info.plot=:p", update_values:dict='":r": {VALUE}, ":p": {VALUE}'):
         """
         Updates data for an item in the table.
         :return: The fields that were updated, with their new values.
@@ -220,8 +251,7 @@ class DynamoTable:
 
     def add_sec_index(self,index_name:str, key_schema:List[dict],attribute_definitions:List[dict], projection_type:str="ALL"):
         try:
-            client = boto3.client('dynamodb')
-            resp = client.update_table(
+            resp = self.dyn_client.update_table(
                 TableName=self.table_name,
                 # Any attributes used in your new global secondary index must be declared in AttributeDefinitions
                 AttributeDefinitions=attribute_definitions,
@@ -248,8 +278,19 @@ class DynamoTable:
                     }
                 ],
             )
-            print("Secondary index added!")
-            self._sec_indexs.append(index_name)
+            created = False
+            print('Waiting for secondery index to be created and active (between few seconds to few mins)')
+            while not created:
+                indexs = self.global_secondary_indexes
+                for index in indexs:
+                    if index['IndexName'] == index_name and index['IndexStatus'] == 'ACTIVE':
+                        print("Secondary index added!")
+                        print(f'Index {index_name} was created')
+                        self._sec_indexs.append(index_name)
+                        created = True
+                print(f'Waiting for secondery index ({index_name}) to be created ....')
+                time.sleep(10)
+            
         except Exception as e:
             print("Error updating table:")
             print(e)

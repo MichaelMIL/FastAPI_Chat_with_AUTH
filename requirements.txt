@@ -2,3 +2,4 @@
 fastapi
 email-validator
 boto3
+websockets
