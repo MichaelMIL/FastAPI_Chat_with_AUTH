@@ -1,4 +1,4 @@
-messages = {
+messages_schema = {
     'base' : {
         'key_schema' : [
             {'AttributeName': 'connection_id', 'KeyType': 'HASH'},

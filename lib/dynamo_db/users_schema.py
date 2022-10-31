@@ -1,4 +1,4 @@
-users = {
+users_schema = {
     'base' : {
         'key_schema' : [
             {'AttributeName': 'id', 'KeyType': 'HASH'},

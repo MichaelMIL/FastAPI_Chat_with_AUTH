@@ -192,7 +192,7 @@ class DynamoTable:
                     KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals))
                 else:
                     response = self.table.query(IndexName=sec_index_name,
-                    nditionExpression=Key(key_name).eq(equals))
+                    KeyConditionExpression=Key(key_name).eq(equals))
             else:   
                 if sec_key and sec_equals:
                     response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals)) 
@@ -203,7 +203,9 @@ class DynamoTable:
                 err.response['Error']['Code'], err.response['Error']['Message'])
             raise
         else:
-            return response['Items']
+            if 'Items' in response:
+                return response['Items']
+            return []
 
 
     def scan_items(self, range):

@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Body, Request, Depends
+from fastapi import APIRouter, Body, HTTPException, Request, Depends
 from fastapi import APIRouter
 from actions.auth_actions import verify_jwt_token
 from models.user_model import CreateUser, User
@@ -17,12 +17,16 @@ async def create_user(request: Request,user: CreateUser = Body(...),token : str 
 async def get_user(request: Request,user_id:str,token : str =  Depends(verify_jwt_token)):
     table:DynamoTable = request.app.users_table
     user = table.query_items('id', user_id)
+    if not len(user) >0:
+        raise HTTPException(404)
     return user[0]
 
 @user_router.get('/phone/{user_phone}', response_model=User)
 async def get_user_by_phone(request: Request,user_phone:str,token : str =  Depends(verify_jwt_token)):
     table:DynamoTable = request.app.users_table
-    user = table.query_items('phone', user_phone, 'phone-index')
+    user = table.query_items('phone', str(user_phone), 'phone-index')
+    if not len(user) >0:
+        raise HTTPException(404)
     return user[0]
 
 @user_router.delete('/{user_id}', response_model=None)

@@ -1,4 +1,4 @@
-otp = {
+otp_schema = {
     'base' : {
         'key_schema' : [
             {'AttributeName': 'key', 'KeyType': 'HASH'},
