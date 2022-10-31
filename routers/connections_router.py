@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Request, Depends
-from models.user import User
+from models.user_model import User
 
 
 router = APIRouter()

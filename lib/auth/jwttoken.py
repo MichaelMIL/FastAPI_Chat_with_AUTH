@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from server.models.auth_model import TokenData
-
-from server.config import secrets
-
+SECRET_KEY = "09d232643253a2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+ALGORITHM = "HS256"
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     to_encode = data.copy()
@@ -13,20 +11,20 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
-        claims=to_encode, key=secrets.SECRET_KEY, algorithm=secrets.ALGORITHM
+        claims=to_encode, key=SECRET_KEY, algorithm=ALGORITHM
     )
     return encoded_jwt
 
 
-def verify_token(token: str, credentials_exception) -> TokenData:
+def verify_token(token: str, credentials_exception) ->dict:
     try:
         payload = jwt.decode(
-            token=token, key=secrets.SECRET_KEY, algorithms=[secrets.ALGORITHM]
+            token=token, key=SECRET_KEY, algorithms=[ALGORITHM]
         )
-        username: str = payload.get("sub")
-        if username is None:
+        phone: str = payload.get("sub")
+        if phone is None:
             raise credentials_exception
-        token_data = TokenData(username=username, exp=payload.get("exp"))
+        token_data = {'phone':phone, 'exp':payload.get("exp")}
         return token_data
     except JWTError:
         raise credentials_exception

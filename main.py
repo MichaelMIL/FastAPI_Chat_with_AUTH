@@ -9,14 +9,14 @@ app = FastAPI()
 import boto3
 
 # import DynamoDB table class
-from src.dynamo_db.table import DynamoTable
+from lib.dynamo_db.table import DynamoTable
 
 # import needed schemas
-from src.dynamo_db.connections_schema import connections
-from src.dynamo_db.users_schema import users
-from src.dynamo_db.messages_schema import messages
-from src.dynamo_db.OTP_schema import otp
-from src.dynamo_db.auth_token_shema import auth_token_schema
+from lib.dynamo_db.connections_schema import connections
+from lib.dynamo_db.users_schema import users
+from lib.dynamo_db.messages_schema import messages
+from lib.dynamo_db.OTP_schema import otp
+from lib.dynamo_db.auth_token_shema import auth_token_schema
 
 # creeating a clinet for connectiong DynamoDb
 resource = boto3.resource("dynamodb")
@@ -24,6 +24,7 @@ client = boto3.client("dynamodb")
 
 # import routers
 from routers.users_router import user_router
+from routers.auth_router import auth_router
 
 @app.on_event("startup")
 def startup_db_client():
@@ -36,6 +37,9 @@ def startup_db_client():
     
 # app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(user_router, prefix="/user", tags=["user"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

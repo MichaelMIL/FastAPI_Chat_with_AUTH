@@ -3,3 +3,5 @@ fastapi
 email-validator
 boto3
 websockets
+'python-jose[cryptography]'
+python-multipart

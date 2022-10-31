@@ -178,17 +178,24 @@ class DynamoTable:
                 "Couldn't delete item %s. Here's why: %s: %s",err.response['Error']['Code'], err.response['Error']['Message'])
             raise
 
-    def query_items(self, key_name:str, equals:str, sec_index_name:str = None):
+    def query_items(self, key_name:str, equals:str, sec_index_name:str = None, sec_key:str = None, sec_equals:str=None):
         """
         Queries for items.
         :return: The list of items.
         """
         try:
             if sec_index_name:
-                response = self.table.query(IndexName=sec_index_name,
-                KeyConditionExpression=Key(key_name).eq(equals))
-            else:    
-                response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals))
+                if sec_key and sec_equals:
+                    response = self.table.query(IndexName=sec_index_name,
+                    KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals))
+                else:
+                    response = self.table.query(IndexName=sec_index_name,
+                    nditionExpression=Key(key_name).eq(equals))
+            else:   
+                if sec_key and sec_equals:
+                    response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals)) 
+                else:
+                    response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals))
         except ClientError as err:
             print("Couldn't query for items. Here's why: %s: %s",
                 err.response['Error']['Code'], err.response['Error']['Message'])
