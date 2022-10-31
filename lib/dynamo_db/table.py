@@ -165,7 +165,9 @@ class DynamoTable:
                 err.response['Error']['Code'], err.response['Error']['Message'])
             raise
         else:
-            return response['Item']
+            if 'Item' in response:
+                return response['Item']
+            return None
 
     def delete_item(self, key):
         """
