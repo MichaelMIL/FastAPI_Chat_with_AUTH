@@ -8,6 +8,7 @@ class User(BaseModel):
     user_name: str = 'test-name'
     phone: str = '123456789'
     email: EmailStr = 'user@test.com'
+    school:str ='testing-school'
     looking_for: Optional[str] = 'Nada'
     user_location: Optional[dict] = {'lat': "12.12", 'lon': "14.14"}
     profile_pic_S3_path: Optional[str] = 'S3-Backet-path'
@@ -17,6 +18,7 @@ class CreateUser(User):
     phone: str = '123456789'
     email: EmailStr = 'user@test.com'
     password:str = '1234'
+    school:str ='testing-school'
     looking_for: Optional[str] = 'Nada'
     user_location: Optional[dict] = {'lat': "12.12", 'lon': "14.14"}
     profile_pic_S3_path: Optional[str] = 'S3-Backet-path'

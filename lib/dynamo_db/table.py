@@ -180,7 +180,7 @@ class DynamoTable:
                 "Couldn't delete item %s. Here's why: %s: %s",err.response['Error']['Code'], err.response['Error']['Message'])
             raise
 
-    def query_items(self, key_name:str, equals:str, sec_index_name:str = None, sec_key:str = None, sec_equals:str=None):
+    def query_items(self, key_name:str, equals, sec_index_name:str = None, sec_key:str = None, sec_equals=None):
         """
         Queries for items.
         :return: The list of items.
@@ -236,8 +236,6 @@ class DynamoTable:
 
     def update_item_by_dict(self,key:dict, dict:dict):
         update_expression,update_values = expression_and_values_builder(dict, 'set')
-        print(update_expression)
-        print(update_values)
         return self.update_item(key,update_expression,update_values)
 
     def update_item(self,key:dict ,update_expression:str="set info.rating=:r, info.plot=:p", update_values:dict='":r": {VALUE}, ":p": {VALUE}'):

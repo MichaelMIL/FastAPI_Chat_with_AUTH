@@ -1,41 +1,32 @@
 
-from fastapi import APIRouter, Body, HTTPException, Request, Depends
+from fastapi import APIRouter, Body, Request, Depends
 from fastapi import APIRouter
 from actions.auth_actions import verify_jwt_token
 from models.user_model import CreateUser, User
-from lib.dynamo_db.table import DynamoTable
+from actions.user_actions import _create_user,_delete_user,_get_user,_get_user_by_phone,_update_user
 
 user_router = APIRouter()
 
-@user_router.post('/{user_id}', response_model=User)
+@user_router.post('/', response_model=User)
 async def create_user(request: Request,user: CreateUser = Body(...),token : str =  Depends(verify_jwt_token)):
-    table:DynamoTable = request.app.users_table
-    table.add_item(user.dict())
+    user = _create_user(request=request,user=user)
     return user
 
-@user_router.get('/{user_id}', response_model=User)
-async def get_user(request: Request,user_id:str,token : str =  Depends(verify_jwt_token)):
-    table:DynamoTable = request.app.users_table
-    user = table.query_items('id', user_id)
-    if not len(user) >0:
-        raise HTTPException(404)
-    return user[0]
+@user_router.get('/{UserId}', response_model=User)
+async def get_user(request: Request,UserId:str,token : str =  Depends(verify_jwt_token)):
+    user = _get_user(request=request,user_id=UserId)
+    return user
 
-@user_router.get('/phone/{user_phone}', response_model=User)
-async def get_user_by_phone(request: Request,user_phone:str,token : str =  Depends(verify_jwt_token)):
-    table:DynamoTable = request.app.users_table
-    user = table.query_items('phone', str(user_phone), 'phone-index')
-    if not len(user) >0:
-        raise HTTPException(404)
-    return user[0]
+@user_router.get('/phone/{UserPhoneNumber}', response_model=User)
+async def get_user_by_phone(request: Request,UserPhoneNumber:str,token : str =  Depends(verify_jwt_token)):
+    user = _get_user_by_phone(request=request, user_phone=UserPhoneNumber)
+    return user
 
-@user_router.delete('/{user_id}', response_model=None)
-async def delete_user(request: Request,user_id:str,token : str =  Depends(verify_jwt_token)):
-    table:DynamoTable = request.app.users_table
-    table.delete_item({'id': user_id})
+@user_router.delete('/{UserId}', response_model=None)
+async def delete_user(request: Request,UserId:str,token : str =  Depends(verify_jwt_token)):
+    _delete_user(request=request, user_id=UserId)
 
-@user_router.put('/{user_id}', response_model=dict)
-async def update_user(request: Request,user_id:str, user = Body(...),token : str =  Depends(verify_jwt_token)):
-    table:DynamoTable = request.app.users_table
-    updated_user = table.update_item_by_dict(key={'id': user_id}, dict = user)
+@user_router.put('/{UserId}', response_model=dict)
+async def update_user(request: Request,UserId:str, user:dict = Body(...),token : str =  Depends(verify_jwt_token)):
+    updated_user = _update_user(request=request, user_id=UserId, user=user)
     return updated_user
