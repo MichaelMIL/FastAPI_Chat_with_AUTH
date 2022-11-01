@@ -243,6 +243,8 @@ class DynamoTable:
         Updates data for an item in the table.
         :return: The fields that were updated, with their new values.
         """
+        if not update_expression or not update_values:
+            return None
         try:
             response = self.table.update_item(
                 Key=key,
