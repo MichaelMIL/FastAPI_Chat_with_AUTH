@@ -3,7 +3,7 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Request, HTTPException, status, Depends, APIRouter
 from lib.auth.OTP import rand_pass
-from actions.auth_actions import authenticate_user
+from actions.auth_actions import authenticate_user, verify_jwt_token
 from lib.auth.jwttoken import create_access_token
 from lib.dynamo_db.table import DynamoTable
 
@@ -31,6 +31,7 @@ async def login_oauth(
 @auth_router.post('/otp', response_model=dict)
 async def generate_otp(
     request: Request,
+    token : str =  Depends(verify_jwt_token)
 ):
     table: DynamoTable = request.app.otps_table
     password = rand_pass(10)

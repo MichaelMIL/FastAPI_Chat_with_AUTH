@@ -37,9 +37,10 @@ async def approve_pending_connection(
 
 
 @connections_router.get('/{UserPhone}/pending')
-async def get_pending_messages(
+async def get_pending_connections(
     request: Request,
-    UserPhone:str
+    UserPhone:str,
+    token : str =  Depends(verify_jwt_token)
 ):
     user = _get_user_by_phone(request, UserPhone)
     table: DynamoTable = request.app.connections_table
@@ -47,14 +48,15 @@ async def get_pending_messages(
     return [connection for connection in connections if connection['is_approved']==False]
 
 @connections_router.get('/{UserPhone}/active')
-async def approve_messages(
+async def get_active_connections(
     request: Request,
-    UserPhone:str
+    UserPhone:str,
+    token : str =  Depends(verify_jwt_token)
 ):
     user = _get_user_by_phone(request, UserPhone)
     table: DynamoTable = request.app.connections_table
-    connections =  table.query_items('to_user_id',user['id'],'to_user_id-index')
-    return [connection for connection in connections if connection['is_approved']==True]
+    connections = [connection for connection in table.query_items('to_user_id',user['id'],'to_user_id-index') if connection['is_approved']==True] + [connection for connection in table.query_items('from_user_id',user['id'],'from_user_id-index') if connection['is_approved']==True]
+    return connections
 
 
 @connections_router.delete('/{ConnectionId}')
