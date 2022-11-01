@@ -17,14 +17,16 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
 
 
 def verify_token(token: str, credentials_exception) ->dict:
-    try:
+    # try:
+
         payload = jwt.decode(
-            token=token, key=SECRET_KEY, algorithms=[ALGORITHM]
+            token=str(token), key=SECRET_KEY, algorithms=[ALGORITHM]
         )
-        phone: str = payload.get("sub")
+        id = payload.get("sub")
+        phone = payload.get("phone")
         if phone is None:
             raise credentials_exception
-        token_data = {'phone':phone, 'exp':payload.get("exp")}
+        token_data = {'id':id,'phone':phone, 'exp':payload.get("exp")}
         return token_data
-    except JWTError:
-        raise credentials_exception
+    # except JWTError:
+    #     raise credentials_exception
