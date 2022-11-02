@@ -19,9 +19,7 @@ async def create_new_connection_between_current_and_inputed_users(
     to_user = _get_user_by_phone(request, str(ToUserPhone))
     if from_user and to_user:
         connections_table: DynamoTable = request.app.connections_table
-        new_connection = Connection(
-            from_user_id=from_user["id"], to_user_id=to_user["id"]
-        )
+        new_connection = Connection(from_user_id=from_user.id, to_user_id=to_user.id)
         connections_table.add_item(new_connection.dict())
         return new_connection
     else:
