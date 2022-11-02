@@ -207,32 +207,12 @@ class DynamoTable:
                 return response['Items']
             return []
 
-
-    def scan_items(self, range):
-        """
-        Scans for items that.
-        Uses a projection expression to return a subset of data for each item.
-        :return: The list of items released in the specified years.
-        """
-        items = []
-        scan_kwargs = {'FilterExpression': Key('year').between(range['first'], range['second'])}
-        try:
-            done = False
-            start_key = None
-            while not done:
-                if start_key:
-                    scan_kwargs['ExclusiveStartKey'] = start_key
-                response = self.table.scan(**scan_kwargs)
-                items.extend(response.get('Items', []))
-                start_key = response.get('LastEvaluatedKey', None)
-                done = start_key is None
-        except ClientError as err:
-            print(
-                "Couldn't scan for items. Here's why: %s: %s",
-                err.response['Error']['Code'], err.response['Error']['Message'])
-            raise
-
-        return items
+    def get_all_items(self):
+        items = self.table.scan()
+        if "Items" in items:
+            return items['Items']
+        else:
+            return None
 
     def update_item_by_dict(self,key:dict, dict:dict):
         update_expression,update_values = expression_and_values_builder(dict, 'set')

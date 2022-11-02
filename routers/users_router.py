@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 from fastapi import APIRouter, Body, HTTPException, Request, Depends
 from fastapi import APIRouter
 from actions.auth_actions import verify_jwt_token
@@ -9,6 +9,7 @@ from actions.user_actions import (
     _delete_user,
     _get_user,
     _get_user_by_phone,
+    _get_users_in_range,
     _update_user,
 )
 
@@ -76,9 +77,9 @@ async def update_user_location(
     )
 
 
-@user_router.get("/in-range", response_model=list[User])
+@user_router.get("/location/in-range", response_model=List[User])
 async def get_users_in_range(
     request: Request, token: Token = Depends(verify_jwt_token)
 ):
     print("Need To BE DONE!")
-    return []
+    return _get_users_in_range(request=request, user_id=token["id"])
