@@ -9,8 +9,8 @@ from actions.user_actions import _get_user_by_phone
 connections_router = APIRouter()
 
 
-@connections_router.post('/to/{ToUSerPhone}', response_model=Connection)
-async def create_new_connection(
+@connections_router.post('/{ToUSerPhone}', response_model=Connection)
+async def create_new_connection_between_current_and_inputed_users(
     request:Request, 
     ToUserPhone:str,
     token : Token =  Depends(verify_jwt_token)):
@@ -39,7 +39,7 @@ async def approve_pending_connection(
 
 
 @connections_router.get('/pending', response_model=List[Connection])
-async def get_pending_connections(
+async def get_pending_connections_for_current_user(
     request: Request,
     token : Token =  Depends(verify_jwt_token)
 ):
@@ -49,7 +49,7 @@ async def get_pending_connections(
     return [connection for connection in connections if connection['is_approved']==False]
 
 @connections_router.get('/active', response_model=List[Connection])
-async def get_active_connections(
+async def get_active_connections_for_current_user(
     request: Request,
     token : Token =  Depends(verify_jwt_token)
 ):

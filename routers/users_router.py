@@ -30,3 +30,9 @@ async def delete_user(request: Request,UserId:str,token : str =  Depends(verify_
 async def update_user(request: Request,UserId:str, user:dict = Body(...),token : str =  Depends(verify_jwt_token)):
     updated_user = _update_user(request=request, user_id=UserId, user=user)
     return updated_user
+
+
+@user_router.get('/in-range', response_model=list[User])
+async def get_users_in_range(request: Request,token : str =  Depends(verify_jwt_token)):
+    print('Need To BE DONE!')
+    return []
