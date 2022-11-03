@@ -77,7 +77,10 @@ async def delete_connection(
 ):
     table: DynamoTable = request.app.connections_table
     connection = table.get_item({"id": ConnectionId})
-    if connection["to_user_id"] == token["id"]:
+    if (
+        connection["to_user_id"] == token["id"]
+        or connection["from_user_id"] == token["id"]
+    ):
         table.delete_item({"id": ConnectionId})
     else:
         raise HTTPException(400, "Connection is not made to the current user")
