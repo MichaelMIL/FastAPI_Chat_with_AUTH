@@ -59,7 +59,7 @@ def _get_users_in_range(request: Request, user_id: str, range: float = 50) -> Li
             <= range
         ):
             out.append(user)
-    return out
+    return [user for user in out if user['id'] != user_id]
 
 
 def distance_between_coordinates(

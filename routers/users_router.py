@@ -81,5 +81,4 @@ async def update_user_location(
 async def get_users_in_range(
     request: Request, token: Token = Depends(verify_jwt_token)
 ):
-    print("Need To BE DONE!")
     return _get_users_in_range(request=request, user_id=token["id"])
