@@ -15,7 +15,7 @@ from lib.dynamo_db.users_schema import users_schema
 from lib.dynamo_db.messages_schema import messages_schema
 from lib.dynamo_db.OTP_schema import otp_schema
 
-# creeating a clinet for connectiong DynamoDb
+# creating a client for connecting DynamoDb
 resource = boto3.resource("dynamodb")
 client = boto3.client("dynamodb")
 
@@ -45,7 +45,6 @@ app.include_router(websocket_router, prefix="/message", tags=["message"])
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

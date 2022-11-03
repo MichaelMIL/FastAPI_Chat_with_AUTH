@@ -21,11 +21,11 @@ class DynamoTable:
         self.dyn_client = dyn_client
         self.table_name = table_name
         self.table = None
-        self._sec_indexs = []
+        self._sec_indexes = []
         if not self.exists():
             if table_schema:
                 print(f'Table {table_name.upper()} is missing - creating table')
-                self.create_table_and_sec_indexs(table_schema)
+                self.create_table_and_sec_indexes(table_schema)
             else:
                 print(f'Table {table_name.upper()} is missing - create table')
 
@@ -34,8 +34,8 @@ class DynamoTable:
         return self.table.attribute_definitions
 
     @property
-    def sec_indexs(self) ->List:
-        return self._sec_indexs
+    def sec_indexes(self) ->List:
+        return self._sec_indexes
 
     @property
     def describe_table(self)->dict:
@@ -49,10 +49,10 @@ class DynamoTable:
     def global_secondary_indexes_list(self)-> List[str]:
         return [name['IndexName'] for name in self.describe_table['Table']['GlobalSecondaryIndexes']]
 
-    def create_table_and_sec_indexs(self, table_schema:dict):
+    def create_table_and_sec_indexes(self, table_schema:dict):
         self.create(key_schema = table_schema['base']['key_schema'],attribute_definitions=table_schema['base']['attribute_definitions'])
         time.sleep(1)
-        for sec_index in table_schema['secondery_keys']:
+        for sec_index in table_schema['secondary_keys']:
             self.add_sec_index(index_name= sec_index['name'], key_schema= sec_index['key_schema'],attribute_definitions=sec_index['attribute_definitions'])
             time.sleep(1)
 
@@ -180,7 +180,8 @@ class DynamoTable:
                 "Couldn't delete item %s. Here's why: %s: %s",err.response['Error']['Code'], err.response['Error']['Message'])
             raise
 
-    def query_items(self, key_name:str, equals, sec_index_name:str = None, sec_key:str = None, sec_equals=None):
+
+    def query_items(self, key_name:str, equals, sec_index_name:str = None, sec_key:str = None, sec_equals=None, asc=True, limit=100):
         """
         Queries for items.
         :return: The list of items.
@@ -189,15 +190,16 @@ class DynamoTable:
             if sec_index_name:
                 if sec_key and sec_equals:
                     response = self.table.query(IndexName=sec_index_name,
-                    KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals))
+                    KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals),ScanIndexForward=asc,Limit=limit
+                    )
                 else:
                     response = self.table.query(IndexName=sec_index_name,
-                    KeyConditionExpression=Key(key_name).eq(equals))
+                    KeyConditionExpression=Key(key_name).eq(equals),ScanIndexForward=asc,Limit=limit)
             else:   
                 if sec_key and sec_equals:
-                    response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals)) 
+                    response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals) & Key(sec_key).eq(sec_equals),ScanIndexForward=asc,Limit=limit) 
                 else:
-                    response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals))
+                    response = self.table.query(KeyConditionExpression=Key(key_name).eq(equals),ScanIndexForward=asc,Limit=limit)
         except ClientError as err:
             print("Couldn't query for items. Here's why: %s: %s",
                 err.response['Error']['Code'], err.response['Error']['Message'])
@@ -262,24 +264,24 @@ class DynamoTable:
                             },
                             # Global secondary indexes have read and write capacity separate from the underlying table.
                             "ProvisionedThroughput": {
-                                "ReadCapacityUnits": 10,
-                                "WriteCapacityUnits": 10,
+                                "ReadCapacityUnits": 2,
+                                "WriteCapacityUnits": 2,
                             }
                         }
                     }
                 ],
             )
             created = False
-            print('Waiting for secondery index to be created and active (between few seconds to few mins)')
+            print('Waiting for secondary index to be created and active (between few seconds to few mins)')
             while not created:
-                indexs = self.global_secondary_indexes
-                for index in indexs:
+                indexes = self.global_secondary_indexes
+                for index in indexes:
                     if index['IndexName'] == index_name and index['IndexStatus'] == 'ACTIVE':
                         print("Secondary index added!")
                         print(f'Index {index_name} was created')
-                        self._sec_indexs.append(index_name)
+                        self._sec_indexes.append(index_name)
                         created = True
-                print(f'Waiting for secondery index ({index_name}) to be created ....')
+                print(f'Waiting for secondary index ({index_name}) to be created ....')
                 time.sleep(10)
             
         except Exception as e:

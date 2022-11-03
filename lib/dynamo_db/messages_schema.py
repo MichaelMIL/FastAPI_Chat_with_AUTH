@@ -1,15 +1,13 @@
 messages_schema = {
-    'base' : {
-        'key_schema' : [
-            {'AttributeName': 'connection_id', 'KeyType': 'HASH'},
-            {'AttributeName': 'creation_time', 'KeyType': 'RANGE'},
-
+    "base": {
+        "key_schema": [
+            {"AttributeName": "connection_id", "KeyType": "HASH"},
+            {"AttributeName": "timestamp", "KeyType": "RANGE"},
         ],
-        'attribute_definitions' : [
-            {'AttributeName': 'connection_id', 'AttributeType':'S'},
-            {'AttributeName': 'creation_time', 'AttributeType':'S'},
-
-        ]   
+        "attribute_definitions": [
+            {"AttributeName": "connection_id", "AttributeType": "S"},
+            {"AttributeName": "timestamp", "AttributeType": "N"},
+        ],
     },
-    'secondery_keys': []
+    "secondary_keys": [],
 }

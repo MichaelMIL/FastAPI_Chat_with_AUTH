@@ -10,7 +10,7 @@ connections_router = APIRouter()
 
 
 @connections_router.post("/{ToUSerPhone}", response_model=Connection)
-async def create_new_connection_between_current_and_inputed_users(
+async def create_new_connection_between_current_and_inputted_users(
     request: Request, ToUserPhone: str, token: Token = Depends(verify_jwt_token)
 ):
     if not ToUserPhone:

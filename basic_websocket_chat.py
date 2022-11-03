@@ -128,7 +128,7 @@ async def websocket_endpoint(
             if q is not None:
                 await websocket.send_text(f"Query parameter q is: {q}")
             await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.send_message_to_user(f"Hello direct messging", "foo")
+            await manager.send_message_to_user(f"Hello direct messaging", "foo")
             await manager.broadcast(f"Client #{client_id} says: {data}")
     except WebSocketDisconnect:
         manager.disconnect(websocket)

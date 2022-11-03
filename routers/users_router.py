@@ -57,7 +57,7 @@ async def update_user(
     token: Token = Depends(verify_jwt_token),
 ):
     if UserId != token["id"]:
-        raise HTTPException(400, "User can not change othe user")
+        raise HTTPException(400, "User can not change other user")
     updated_user = _update_user(request=request, user_id=token["id"], user=user)
     return updated_user
 

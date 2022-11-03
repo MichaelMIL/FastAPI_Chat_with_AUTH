@@ -1,11 +1,11 @@
 otp_schema = {
-    'base' : {
-        'key_schema' : [
-            {'AttributeName': 'key', 'KeyType': 'HASH'},
+    "base": {
+        "key_schema": [
+            {"AttributeName": "key", "KeyType": "HASH"},
         ],
-        'attribute_definitions' : [
-            {'AttributeName': 'key', 'AttributeType':'S'},
-        ]   
+        "attribute_definitions": [
+            {"AttributeName": "key", "AttributeType": "S"},
+        ],
     },
-    'secondery_keys': []
+    "secondary_keys": [],
 }
