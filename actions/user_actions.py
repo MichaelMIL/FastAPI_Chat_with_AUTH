@@ -7,8 +7,11 @@ from math import sin, cos, sqrt, atan2, radians
 
 def _create_user(request: Request, user: CreateUser) -> User:
     table: DynamoTable = request.app.users_table
+    db_user = table.query_items("phone", str(user.phone), "phone-index")
+    if db_user:
+        raise HTTPException(409, f"User with phone {user.phone} already exists!")
     table.add_item(user.dict())
-    return User(**user)
+    return User(**user.dict())
 
 
 def _get_user(request: Request, user_id: str) -> User:
