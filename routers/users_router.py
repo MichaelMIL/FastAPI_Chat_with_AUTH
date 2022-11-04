@@ -1,7 +1,16 @@
 from typing import List, Union
-from fastapi import APIRouter, Body, HTTPException, Request, Depends
-from fastapi import APIRouter
+from fastapi import (
+    APIRouter,
+    Body,
+    HTTPException,
+    Request,
+    Depends,
+    UploadFile,
+    Response,
+)
 from actions.auth_actions import verify_jwt_token
+from fastapi.responses import FileResponse
+from lib.s3.bucket import S3_Bucket
 from models.auth_model import Token
 from models.user_model import CreateUser, User
 from actions.user_actions import (
@@ -82,3 +91,23 @@ async def get_users_in_range(
     request: Request, token: Token = Depends(verify_jwt_token)
 ):
     return _get_users_in_range(request=request, user_id=token["id"])
+
+
+@user_router.post("/picture/profile")
+async def upload_profile_picture_for_current_user(
+    request: Request, file: UploadFile, token: Token = Depends(verify_jwt_token)
+):
+    user_id = token["id"]
+    bucket: S3_Bucket = request.app.s3_bucket
+    data = await file.read()
+    return bucket.upload_file(user_id + ".jpg", data)
+
+
+@user_router.get("/picture/profile")
+async def get_profile_picture_for_current_user(
+    request: Request, token: Token = Depends(verify_jwt_token)
+):
+    user_id = token["id"]
+    bucket: S3_Bucket = request.app.s3_bucket
+    out = bucket.download_file(user_id + ".jpg")
+    return Response(content=out, media_type="image/png")

@@ -3,3 +3,5 @@
 */__pycache/*
 __pycache__/*
 .DS_Store
+*.zip
+*.jpg

@@ -2,27 +2,27 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 import secrets
 
+from configs import PHONE_LEN
+
 
 class User(BaseModel):
     id: str = Field(default_factory=lambda: secrets.token_hex(16))
     user_name: str
-    phone: str = Field(..., max_length=10)
+    phone: str = Field(..., max_length=PHONE_LEN)
     email: EmailStr
     school: str
     looking_for: Optional[str]
     user_location: Optional[dict]
-    profile_pic_S3_path: Optional[str]
 
 
 class CreateUser(User):
     user_name: str
-    phone: str = Field(..., max_length=10)
+    phone: str = Field(..., max_length=PHONE_LEN)
     email: EmailStr
     password: str
     school: str
     looking_for: Optional[str]
     user_location: Optional[dict]
-    profile_pic_S3_path: Optional[str]
 
 
 if __name__ == "__main__":
