@@ -25,6 +25,8 @@ Install the requirements
 pip install -r requirements.txt
 ```
 
+View and edit configs.py
+
 ## Usage <a name = "usage"></a>
 
 For starting the server:
