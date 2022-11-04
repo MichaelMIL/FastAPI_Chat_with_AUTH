@@ -103,11 +103,10 @@ async def upload_profile_picture_for_current_user(
     return bucket.upload_file(user_id + ".jpg", data)
 
 
-@user_router.get("/picture/profile")
+@user_router.get("/picture/profile/{User_Id}")
 async def get_profile_picture_for_current_user(
-    request: Request, token: Token = Depends(verify_jwt_token)
+    request: Request, UserId: str, token: Token = Depends(verify_jwt_token)
 ):
-    user_id = token["id"]
     bucket: S3_Bucket = request.app.s3_bucket
-    out = bucket.download_file(user_id + ".jpg")
+    out = bucket.download_file(UserId + ".jpg")
     return Response(content=out, media_type="image/png")
