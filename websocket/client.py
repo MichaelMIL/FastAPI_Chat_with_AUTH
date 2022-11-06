@@ -1,6 +1,7 @@
 from typing import Union
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
 from actions.auth_actions import verify_jwt_token
+from configs import OLD_MESSAGES_TO_LOAD
 from lib.dynamo_db.table import DynamoTable
 from models.auth_model import Token
 from models.message_model import Message
@@ -54,7 +55,7 @@ async def websocket_endpoint(
 
         # Get last 30 messages
         old_messages = messages_table.query_items(
-            "connection_id", connection["id"], asc=False, limit=30
+            "connection_id", connection["id"], asc=False, limit=OLD_MESSAGES_TO_LOAD
         )
         old_messages.reverse()
 

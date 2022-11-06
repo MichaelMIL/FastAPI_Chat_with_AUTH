@@ -25,6 +25,16 @@ class CreateUser(User):
     user_location: Optional[dict]
 
 
+class UpdateUser(BaseModel):
+    user_name: Optional[str]
+    phone: Optional[str]
+    email: Optional[EmailStr]
+    school: Optional[str]
+    looking_for: Optional[str]
+    user_location: Optional[dict]
+    password: Optional[str]
+
+
 if __name__ == "__main__":
     user = CreateUser(
         name="test_name",

@@ -9,10 +9,10 @@ from fastapi import (
     Response,
 )
 from actions.auth_actions import verify_jwt_token
-from fastapi.responses import FileResponse
+from configs import USERS_RANGE
 from lib.s3.bucket import S3_Bucket
 from models.auth_model import Token
-from models.user_model import CreateUser, User
+from models.user_model import CreateUser, UpdateUser, User
 from actions.user_actions import (
     _create_user,
     _delete_user,
@@ -51,27 +51,27 @@ async def get_user_by_phone(
     return user
 
 
-@user_router.delete("/{UserId}", response_model=None)
-async def delete_user(
-    request: Request, UserId: str, token: Token = Depends(verify_jwt_token)
-):
-    _delete_user(request=request, user_id=UserId)
+@user_router.delete("/", response_model=None)
+async def delete_user(request: Request, token: Token = Depends(verify_jwt_token)):
+    _delete_user(request=request, user_id=token["id"])
 
 
-@user_router.put("/{UserId}", response_model=dict)
+@user_router.put("/", response_model=dict)
 async def update_user(
     request: Request,
-    UserId: str,
-    user: dict = Body(...),
+    user: UpdateUser = Body(...),
     token: Token = Depends(verify_jwt_token),
 ):
-    if UserId != token["id"]:
-        raise HTTPException(400, "User can not change other user")
+    user = user.dict()
+    _ = user.copy()
+    for item, value in _.items():
+        if not value:
+            del user[item]
     updated_user = _update_user(request=request, user_id=token["id"], user=user)
     return updated_user
 
 
-@user_router.put("/set-location/{Lat}/{lon}", response_model=dict)
+@user_router.put("/set-location/{Lat}/{Lon}", response_model=dict)
 async def update_user_location(
     request: Request,
     Lat: Union[str, int, float],
@@ -81,7 +81,7 @@ async def update_user_location(
     return await update_user(
         request=request,
         UserId=token["id"],
-        user={"user_location": {"lat": Lat, "lon": Lon}},
+        user={"user_location": {"lat": str(Lat), "lon": str(Lon)}},
         token=token,
     )
 
@@ -90,11 +90,11 @@ async def update_user_location(
 async def get_users_in_range(
     request: Request, token: Token = Depends(verify_jwt_token)
 ):
-    return _get_users_in_range(request=request, user_id=token["id"])
+    return _get_users_in_range(request=request, user_id=token["id"], range=USERS_RANGE)
 
 
 @user_router.post("/picture/profile")
-async def upload_profile_picture_for_current_user(
+async def upload_profile_picture_for_current_user_JPG_ONLY(
     request: Request, file: UploadFile, token: Token = Depends(verify_jwt_token)
 ):
     user_id = token["id"]
@@ -104,7 +104,7 @@ async def upload_profile_picture_for_current_user(
 
 
 @user_router.get("/picture/profile/{User_Id}")
-async def get_profile_picture_for_current_user(
+async def get_profile_picture_for_user(
     request: Request, UserId: str, token: Token = Depends(verify_jwt_token)
 ):
     bucket: S3_Bucket = request.app.s3_bucket

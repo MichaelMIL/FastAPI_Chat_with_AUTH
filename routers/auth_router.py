@@ -1,16 +1,14 @@
-
-
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Request, HTTPException, status, Depends, APIRouter
 from lib.auth.OTP import rand_pass
 from actions.auth_actions import authenticate_user, verify_jwt_token
 from lib.auth.jwttoken import create_access_token
 from lib.dynamo_db.table import DynamoTable
-
-
+from models.auth_model import OTP, BearerToken
 
 
 auth_router = APIRouter()
+
 
 class InvalidCredentials(HTTPException):
     def __init__(self):
@@ -18,8 +16,9 @@ class InvalidCredentials(HTTPException):
         detail = "Invalid credentials"
         headers = {"WWW-Authenticate": "Bearer"}
         super().__init__(status_code=status_code, detail=detail, headers=headers)
-        
-@auth_router.post("/token")
+
+
+@auth_router.post("/token", response_model=BearerToken)
 async def login_oauth(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -28,28 +27,22 @@ async def login_oauth(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@auth_router.post('/otp', response_model=dict)
-async def generate_otp(
-    request: Request,
-    token : str =  Depends(verify_jwt_token)
-):
+@auth_router.post("/otp", response_model=OTP)
+async def generate_otp(request: Request, token: str = Depends(verify_jwt_token)):
     table: DynamoTable = request.app.otps_table
     password = rand_pass(10)
-    table.add_item({'key':password})
-    return {'key':password}
+    table.add_item({"key": password})
+    return OTP(key=password)
 
-@auth_router.post('/otp/{key}')
-async def login_otp(
-    request: Request,
-    key:str
-):
+
+@auth_router.post("/otp/{key}", response_model=BearerToken)
+async def login_otp(request: Request, key: str):
     if not key:
         raise InvalidCredentials
     table: DynamoTable = request.app.otps_table
-    item = table.get_item({'key':key})
+    item = table.get_item({"key": key})
     if item:
-        table.delete_item({'key':key})
-        token = create_access_token({'key':key})
-        return {"access_token": token, "token_type": "bearer"}
+        table.delete_item({"key": key})
+        token = create_access_token({"key": key})
+        return BearerToken(access_token=token)
     raise InvalidCredentials
-
