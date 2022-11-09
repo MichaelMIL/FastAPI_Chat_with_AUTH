@@ -6,7 +6,7 @@ from configs import PHONE_LEN
 
 
 class User(BaseModel):
-    id: str = Field(default_factory=lambda: secrets.token_hex(16))
+    id: str = Field(default_factory=lambda: secrets.token_hex(16))  # Unique ID
     user_name: str
     phone: str = Field(..., max_length=PHONE_LEN)
     email: EmailStr
@@ -33,15 +33,3 @@ class UpdateUser(BaseModel):
     looking_for: Optional[str]
     user_location: Optional[dict]
     password: Optional[str]
-
-
-if __name__ == "__main__":
-    user = CreateUser(
-        name="test_name",
-        phone="1111111",
-        password="1111",
-        email="user@test.com",
-        looking_for="you",
-        location={"lat": "123", "lon": "3333"},
-    )
-    print(user)

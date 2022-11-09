@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 
-
 # main FastAPI app
 app = FastAPI()
 
@@ -41,12 +40,18 @@ from websocket.client import websocket_router
 @app.on_event("startup")
 def startup_db_client():
     # load/create needed tables
-    app.users_table = DynamoTable("users", resource, client, users_schema)
+    app.users_table = DynamoTable(
+        "users", resource, client, users_schema
+    )  # add users table
     app.connections_table = DynamoTable(
         "connections", resource, client, connections_schema
-    )
-    app.messages_table = DynamoTable("messages", resource, client, messages_schema)
-    app.otps_table = DynamoTable("otps", resource, client, otp_schema)
+    )  # add connections table
+    app.messages_table = DynamoTable(
+        "messages", resource, client, messages_schema
+    )  # add messages table
+    app.otps_table = DynamoTable(
+        "otps", resource, client, otp_schema
+    )  # add ONe Time Password table
     # Adds One Time Password if no user exists
     users = app.users_table.get_all_items()
     if len(users) == 0:
@@ -69,6 +74,7 @@ app.include_router(websocket_router, prefix="/message", tags=["message"])
 if __name__ == "__main__":
     import uvicorn
 
+    # for running locally
     uvicorn.run(
         "main:app",
         host=HOST,
